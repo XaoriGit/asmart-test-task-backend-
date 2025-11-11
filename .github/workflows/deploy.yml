@@ -1,0 +1,35 @@
+name: Деплой
+on:
+  pull_request:
+    types:
+     - synchronized
+    branches:
+      - master
+  push:
+    branches:
+     - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Тащим ключик
+        run: |
+          echo "${{ secrets.SSH_KEY }}" > deploy_key.pem
+          chmod 600 deploy_key.pem
+
+      - name: Deploy to server via SSH
+        run: |
+          ssh -i deploy_key.pem -p ${{ secrets.PORT }} -o StrictHostKeyChecking=no ${{ secrets.USER }}@${{ secrets.HOST }} << 'EOF'
+            set -e
+            cd /srv/asmart-task-test/
+            echo "🧠 Пулимся с гита..."
+            git checkout master
+            git pull origin master
+
+            echo "🔄 Роняем сервисы..."
+            docker compose down
+            docker compose up -d --build
+
+            echo "✅ Сервисы восстановлены. Изменения применены"
+          EOF
