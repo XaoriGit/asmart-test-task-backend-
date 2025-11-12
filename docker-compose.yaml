@@ -13,9 +13,7 @@ services:
       - type: bind
         source: ./static
         target: /app/static
-      - type: bind
-        source: ./db.sqlite3
-        target: /app/db.sqlite3
+      - ./db:/app/db
     networks:
       - asmart-test
     restart: unless-stopped
